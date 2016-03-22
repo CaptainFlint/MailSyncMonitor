@@ -37,6 +37,31 @@ bool CheckProcess(LPCWSTR exeName)
 	return res;
 }
 
+bool CheckSyncDisk()
+{
+	return (GetFileAttributes(L"Q:\\MailSync") != INVALID_FILE_ATTRIBUTES);
+}
+
+void Run(LPCWSTR cmdline, LPCWSTR msg)
+{
+	if ((msg == NULL) || (MessageBox(NULL, msg, L"Mail Sync Monitor", MB_OKCANCEL | MB_ICONQUESTION | MB_SYSTEMMODAL) == IDOK))
+	{
+		STARTUPINFO si = { 0 };
+		PROCESS_INFORMATION pi = { 0 };
+		si.cb = sizeof(si);
+		wchar_t* cmdline_rw = _wcsdup(cmdline);
+
+		if (CreateProcess(NULL, cmdline_rw, NULL, NULL, FALSE, CREATE_UNICODE_ENVIRONMENT, NULL, NULL, &si, &pi))
+		{
+			CloseHandle(pi.hProcess);
+			CloseHandle(pi.hThread);
+		}
+		else
+			MessageBox(NULL, L"Failed to start command!\nPlease, start it manually.", L"Mail Sync Monitor", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
+		free(cmdline_rw);
+	}
+}
+
 int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR /*lpCmdLine*/, int nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hInstance);
@@ -44,29 +69,25 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR /*lpC
 	UNREFERENCED_PARAMETER(nCmdShow);
 
 	bool TheBatRunning = false;
+	bool SyncDiskPresent = CheckSyncDisk();
 	while (true)
 	{
-		bool test = CheckProcess(L"thebat.exe");
+		bool test;
+		test = CheckProcess(L"thebat.exe");
 		if (TheBatRunning && !test)
 		{
 			// The Bat! was running and just exited - start synchronization
-			if (MessageBox(NULL, L"Start The bat! backup?", L"Mail Sync Monitor", MB_OKCANCEL | MB_ICONQUESTION | MB_SYSTEMMODAL) == IDOK)
-			{
-				STARTUPINFO si = { 0 };
-				PROCESS_INFORMATION pi = { 0 };
-				si.cb = sizeof(si);
-				wchar_t cmdline[] = L"C:\\Windows\\System32\\WScript.exe T:\\AppData\\mail_sync.js backup";
-
-				if (CreateProcess(NULL, cmdline, NULL, NULL, FALSE, CREATE_UNICODE_ENVIRONMENT, NULL, NULL, &si, &pi))
-				{
-					CloseHandle(pi.hProcess);
-					CloseHandle(pi.hThread);
-				}
-				else
-					MessageBox(NULL, L"Failed to start mail_sync.js!\nPlease, start it manually.", L"Mail Sync Monitor", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
-			}
+			Run(L"C:\\Windows\\System32\\WScript.exe T:\\AppData\\mail_sync.js backup", L"Start The bat! backup?");
 		}
 		TheBatRunning = test;
+
+		test = CheckSyncDisk();
+		if (!SyncDiskPresent && test)
+		{
+			// USB Flash with sync data was inserted - start restoring
+			Run(L"C:\\Windows\\System32\\WScript.exe T:\\AppData\\mail_sync.js restore", L"Start The bat! restore?");
+		}
+		SyncDiskPresent = test;
 		Sleep(1000);
 	}
 	return 0;
