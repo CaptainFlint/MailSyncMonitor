@@ -274,7 +274,6 @@ DWORD WINAPI CopyFunc(LPVOID lpParameter)
 {
 	DWORD res = 0;
 	CopyFuncData* th_data = (CopyFuncData*)lpParameter;
-	HWND hp = GetDlgItem(th_data->wnd, IDC_PROGRESS_BAR);
 	const size_t BUF_SIZE = 8 * 1024 * 1024;
 	BYTE* buf = new BYTE[BUF_SIZE];
 	DWORD br, bw;
@@ -292,7 +291,7 @@ DWORD WINAPI CopyFunc(LPVOID lpParameter)
 				return 1;
 			}
 		}
-		SendMessage(hp, PBM_SETPOS, total / (1024 * 1024), 0);
+		SendDlgItemMessage(th_data->wnd, IDC_PROGRESS_BAR, PBM_SETPOS, total / (1024 * 1024), 0);
 
 		// Check whether pause or abort was requested
 		ThreadStatus st;
@@ -370,8 +369,7 @@ bool MoveBackup(wstring SrcPath, wstring DstPath)
 			swprintf_s(msg, L"Failed to obtain archive file size, code: %d!", GetLastError());
 			throw msg;
 		}
-		HWND hp = GetDlgItem(th_data.wnd, IDC_PROGRESS_BAR);
-		SendMessage(hp, PBM_SETRANGE32, 0, (srcSize.QuadPart / (1024 * 1024)));
+		SendDlgItemMessage(th_data.wnd, IDC_PROGRESS_BAR, PBM_SETRANGE32, 0, (srcSize.QuadPart / (1024 * 1024)));
 		ShowWindow(th_data.wnd, SW_SHOWNORMAL);
 
 		// Start copying thread
