@@ -402,22 +402,23 @@ bool MoveBackup(wstring SrcPath, wstring DstPath)
 		th_data.src = th_data.dst = nullptr;
 
 		DWORD th_res;
+		WaitForSingleObject(thread, INFINITE);
 		if (!GetExitCodeThread(thread, &th_res))
 		{
 			swprintf_s(msg, L"Failed to obtain thread status, code: %d!", GetLastError());
 			throw msg;
 		}
 		else if (th_res != 0)
-			res = false;
-
-		if (res)
 		{
-			// Successful completion, delete the source file
-			if (!DeleteFile(SrcPath.c_str()))
-			{
-				swprintf_s(msg, L"Failed to delete file «%s», code: %d!", SrcPath.c_str(), GetLastError());
-				throw msg;
-			}
+			swprintf_s(msg, L"Copy failed, code: %d!", th_res);
+			throw msg;
+		}
+
+		// Successful completion, delete the source file
+		if (!DeleteFile(SrcPath.c_str()))
+		{
+			swprintf_s(msg, L"Failed to delete file «%s», code: %d!", SrcPath.c_str(), GetLastError());
+			throw msg;
 		}
 	}
 	catch (wstring err)
