@@ -461,6 +461,7 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	GetPrivateProfileString(L"General", L"SyncList", L"T:\\AppData\\bat_sync_list.txt", opts.SyncList, MAX_PATH_EX, IniPath);
 	GetPrivateProfileString(L"General", L"Password", L"", opts.Password, MAX_PATH_EX, IniPath);
 	GetPrivateProfileString(L"General", L"BackupSuffix", L"", opts.BackupSuffix, MAX_PATH_EX, IniPath);
+	opts.MaxBackupsNum = GetPrivateProfileInt(L"General", L"MaxBackupsNum", 10, IniPath);
 
 	// Set current path to the DataDir so that WinRAR used relative paths
 	SetCurrentDirectory(opts.DataDir);
