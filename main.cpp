@@ -68,7 +68,7 @@ DWORD ShowMsgBox(const wstring& msg, DWORD Flags, HWND parent = nullptr)
 }
 
 // Checks whether the process with the specified EXE name is running
-bool CheckProcess(const wstring& exeName)
+bool CheckProcess(const vector<const wchar_t*>& exeNames)
 {
 	bool res = false;
 
@@ -81,11 +81,16 @@ bool CheckProcess(const wstring& exeName)
 	{
 		while (Process32Next(snapshot, &entry) == TRUE)
 		{
-			if (_wcsicmp(entry.szExeFile, exeName.c_str()) == 0)
+			for (auto exeName : exeNames)
 			{
-				res = true;
-				break;
+				if (_wcsicmp(entry.szExeFile, exeName) == 0)
+				{
+					res = true;
+					break;
+				}
 			}
+			if (res)
+				break;
 		}
 	}
 	CloseHandle(snapshot);
@@ -472,7 +477,7 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	while (true)
 	{
 		bool test;
-		test = CheckProcess(L"thebat.exe");
+		test = CheckProcess({ L"thebat.exe", L"thebat64.exe" });
 		if (TheBatRunning && !test)
 		{
 			// The Bat! was running and just exited - start synchronization
