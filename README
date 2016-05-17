@@ -1,0 +1,4 @@
+MailSyncMonitor is a project for automatic backup/restore of The Bat! mail database.
+
+When The Bat! is closed, backup starts (after confirmation).
+When USB flash drive with sync archive is inserted, restore starts (again, after confirmation).
