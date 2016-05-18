@@ -318,7 +318,7 @@ DWORD WINAPI CopyFunc(LPVOID lpParameter)
 // Perform all the gore details with moving the file:
 // open files, show the progress dialog, start copying thread, perform message loop
 // until the dialog closes, and if copy was successful, delete the source file.
-bool MoveBackup(wstring SrcPath, wstring DstPath)
+bool MoveBackup(const wstring& SrcPath, const wstring& DstPath)
 {
 	bool res = true;
 	CopyFuncData th_data = { nullptr, nullptr, nullptr };
@@ -426,7 +426,7 @@ bool MoveBackup(wstring SrcPath, wstring DstPath)
 			throw msg;
 		}
 	}
-	catch (wstring err)
+	catch (wchar_t* err)
 	{
 		ShowMsgBox(err, MB_OK | MB_ICONERROR);
 		res = false;
@@ -497,7 +497,7 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 						delete[] TempDir;
 						TempDir = nullptr;
 					}
-					wstring cmdline = wstring(L"\"C:\\Program Files\\WinRAR\\WinRAR.exe\" a -cfg- -m1 -rr3p -s -p") + opts.Password + L" -r -x\"The Bat!\\IspRas\\\" \"" + (TempDir ? TempDir : wstring(opts.SyncDir) + L"\\") + ArchName + L"\" @\"" + opts.SyncList + L"\"";
+					wstring cmdline = wstring(L"\"C:\\Program Files\\WinRAR\\WinRAR.exe\" a -cfg- -m1 -rr3p -s -p") + opts.Password + L" -r -x\"The Bat!\\IspRas\" \"" + (TempDir ? TempDir : wstring(opts.SyncDir) + L"\\") + ArchName + L"\" @\"" + opts.SyncList + L"\"";
 					if (Run(cmdline))
 					{
 						// If necessary, move the archive from temp directory to the sync directory
