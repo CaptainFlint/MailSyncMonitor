@@ -468,9 +468,6 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	GetPrivateProfileString(L"General", L"BackupSuffix", L"", opts.BackupSuffix, MAX_PATH_EX, IniPath);
 	opts.MaxBackupsNum = GetPrivateProfileInt(L"General", L"MaxBackupsNum", 10, IniPath);
 
-	// Set current path to the DataDir so that WinRAR used relative paths
-	SetCurrentDirectory(opts.DataDir);
-
 	// Start monitoring cycle
 	bool TheBatRunning = false;
 	bool SyncDiskPresent = CheckSyncDisk(opts.SyncDir);
@@ -498,6 +495,8 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 						TempDir = nullptr;
 					}
 					wstring cmdline = wstring(L"\"C:\\Program Files\\WinRAR\\WinRAR.exe\" a -cfg- -m1 -rr3p -s -p") + opts.Password + L" -r -x\"The Bat!\\IspRas\" \"" + (TempDir ? TempDir : wstring(opts.SyncDir) + L"\\") + ArchName + L"\" @\"" + opts.SyncList + L"\"";
+					// Set current path to the DataDir so that WinRAR used relative paths
+					SetCurrentDirectory(opts.DataDir);
 					if (Run(cmdline))
 					{
 						// If necessary, move the archive from temp directory to the sync directory
