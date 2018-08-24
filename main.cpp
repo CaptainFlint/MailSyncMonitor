@@ -254,9 +254,13 @@ INT_PTR CALLBACK ProgressDlgFunc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 				PostQuitMessage(0);
 			}
 			else
-				statusRequested = NORMAL;
+				SetThreadStatus(NORMAL);
 			return TRUE;
 		case IDOK:
+			// There is no OK button, but pressing Enter emulates one.
+			// Not intuitive; ignore the OK command.
+			return TRUE;
+		case IDC_FINISHED:
 			// Signal about finished operation
 			DestroyWindow(hwndDlg);
 			PostQuitMessage(0);
@@ -311,7 +315,7 @@ DWORD WINAPI CopyFunc(LPVOID lpParameter)
 			break;
 		}
 	}
-	SendMessage(th_data->wnd, WM_COMMAND, IDOK, 0);
+	SendMessage(th_data->wnd, WM_COMMAND, IDC_FINISHED, 0);
 	return res;
 }
 
@@ -517,13 +521,16 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 			wstring LatestArchName = GetLatestBackup(opts.SyncDir, false);
 			wstring ending = wstring(opts.BackupSuffix) + L".rar";
 			wstring msg;
-			if (LatestArchName.substr(LatestArchName.size() - ending.size()) == ending)
-				msg = L"WARNING!\n\nThe latest archive is from the same computer (" + LatestArchName + L")!\nRestore anyway?";
-			else
-				msg = L"Archive «" + LatestArchName + L"» is going to be restored. Continue?";
-			wstring cmdline = wstring(L"\"C:\\Program Files\\WinRAR\\WinRAR.exe\" x -cfg- -o+ -p") + opts.Password + L" \"" + opts.SyncDir + L"\\" + LatestArchName + L"\" \"" + opts.DataDir + L"\\\"";
-			if (Run(cmdline, msg))
-				ShowMsgBox(L"Mail archive restore complete:\n" + LatestArchName, MB_OK | MB_ICONINFORMATION);
+			if (LatestArchName != L"")
+			{
+				if (LatestArchName.substr(LatestArchName.size() - ending.size()) == ending)
+					msg = L"WARNING!\n\nThe latest archive is from the same computer (" + LatestArchName + L")!\nRestore anyway?";
+				else
+					msg = L"Archive «" + LatestArchName + L"» is going to be restored. Continue?";
+				wstring cmdline = wstring(L"\"C:\\Program Files\\WinRAR\\WinRAR.exe\" x -cfg- -o+ -p") + opts.Password + L" \"" + opts.SyncDir + L"\\" + LatestArchName + L"\" \"" + opts.DataDir + L"\\\"";
+				if (Run(cmdline, msg))
+					ShowMsgBox(L"Mail archive restore complete:\n" + LatestArchName, MB_OK | MB_ICONINFORMATION);
+			}
 		}
 		SyncDiskPresent = test;
 		Sleep(1000);
